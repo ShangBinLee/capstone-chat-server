@@ -11,4 +11,15 @@ const selectChatRoomByBuyerId = (buyerId, pool, query) => {
 	return query(pool, sql, buyerId);
 };
 
-export { selectChatRoomByBuyerId };
+const selectChatRoomByProductId = (productId, pool, query) => {
+	const sql = `${sqlFromChatRoom}
+	WHERE
+	product_id = ?`;
+
+	return query(pool, sql, productId);
+}
+
+export {
+	selectChatRoomByBuyerId,
+	selectChatRoomByProductId
+};
