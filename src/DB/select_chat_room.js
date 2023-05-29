@@ -33,8 +33,21 @@ const selectCheckTransactionById = (id, pool, query) => {
 	return query(pool, sql, id);
 };
 
+/**
+ * 상품에 대한 거래가 성립된 채팅방의 id를 가져옴
+ * @param {Number} productId - 상품 id
+ * @param {Pool} pool - DB connecton pool
+ * @param {Function} query - query 함수
+ */
+const selectTradingRoomIdByProductId = (productId, pool, query) => {
+	const sql = 'SELECT id FROM chat_room WHERE product_id = ? AND check_transaction = true';
+
+	return query(pool, sql, productId);
+};
+
 export {
 	selectChatRoomByBuyerId,
 	selectChatRoomByProductId,
-	selectCheckTransactionById
+	selectCheckTransactionById,
+	selectTradingRoomIdByProductId
 };
