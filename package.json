@@ -5,7 +5,7 @@
   "type": "module",
   "main": "main.js",
   "imports": {
-    "#src/*": "./src",
+    "#src/*": "./src/*",
     "#DB/*": "./src/DB/*"
   },
   "scripts": {
@@ -30,7 +30,8 @@
     "express": "^4.18.2",
     "mysql2": "^3.3.1",
     "node-fetch": "^3.3.1",
-    "socket.io": "^4.6.1"
+    "socket.io": "^4.6.1",
+    "socket.io-client": "^4.6.1"
   },
   "devDependencies": {
     "@types/jest": "^29.5.1",
