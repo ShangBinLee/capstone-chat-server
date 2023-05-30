@@ -1,5 +1,3 @@
-import Pool from "node_modules/mysql2/typings/mysql/lib/Pool";
-
 const sqlFromChatRoom = `SELECT
 id, modified_date, product_id, check_transaction, buyer_id
 FROM
