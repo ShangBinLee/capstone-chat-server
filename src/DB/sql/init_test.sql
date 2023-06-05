@@ -18,6 +18,7 @@ CREATE TABLE `chat` (
 	`create_date` DATETIME NOT NULL,
 	`modified_date` DATETIME NOT NULL,
 	`chat_room_id` BIGINT NOT NULL,
+	`sender_id` VARCHAR(255) NOT NULL,
 	PRIMARY KEY(`id`),
 	CONSTRAINT fk_chat_chat_room_id_chat_room FOREIGN KEY(`chat_room_id`)
 	REFERENCES `chat_room`(`id`) ON UPDATE CASCADE ON DELETE CASCADE
