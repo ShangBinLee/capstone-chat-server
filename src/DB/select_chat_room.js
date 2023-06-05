@@ -20,6 +20,18 @@ const selectChatRoomByProductId = (productId, pool, query) => {
 }
 
 /**
+ * id에 해당하는 채팅방의 product_id 필드를 가져옴
+ * @param {Number} id - 채팅방 id
+ * @param {Pool} pool - DB connection pool
+ * @param {Function} query - query 함수
+ */
+const selectProductIdById = (id, pool, query) => {
+	const sql = 'SELECT product_id FROM chat_room WHERE id = ?';
+
+  return query(pool, sql, id);
+};
+
+/**
  * id에 해당하는 채팅방의 check_transaction 필드를 가져옴
  * @param {Number} id - 채팅방 id
  * @param {Pool} pool - DB connection pool
@@ -46,6 +58,7 @@ const selectTradingRoomIdByProductId = (productId, pool, query) => {
 export {
 	selectChatRoomByBuyerId,
 	selectChatRoomByProductId,
+  selectProductIdById,
 	selectCheckTransactionById,
 	selectTradingRoomIdByProductId
 };
