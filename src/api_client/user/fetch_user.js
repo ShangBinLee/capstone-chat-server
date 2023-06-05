@@ -8,7 +8,20 @@ const fetchUserInfo = (fetch, tok, rootUrl) => {
 	const headers = { Authentication : `berear ${tok}` };
 
 	return fetch(`${rootUrl}/user/info`, { headers })
-		.then(res => res.json());
+		.then((res) => res.json());
 };
 
-export { fetchUserInfo };
+const fetchUserInfoById  = (fetch, userId, rootUrl) => {
+	const params = {
+    field : 'all'
+  };
+
+  const queryString = new URLSearchParams(params).toString();
+
+  return fetch(`${rootUrl}/chat/user/${userId}/info?${queryString}`)
+    .then((res) => res.json());
+}
+export { 
+  fetchUserInfo,
+  fetchUserInfoById
+};
