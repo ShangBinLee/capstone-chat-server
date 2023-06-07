@@ -1,8 +1,8 @@
-import { selectChatRoomByProductId } from "#src/DB/select_chat_room.js";
+import { selectChatRoomByBuyerId, selectChatRoomByProductId } from "#src/DB/select_chat_room.js";
 import { insertChatRoom } from "#src/DB/update_chat_room.js";
 import { fetchProduct } from "#src/api_client/product/fetch_product.js";
 import { notificateNewChatRoomEmitter } from "#src/emitter/chat_room_emitter.js";
-import { joinRooms } from "#src/room/room_manager";
+import { checkSocketInRoom, joinRooms } from "#src/room/room_manager";
 
 /**
  * 특정 상품의 채팅방에 구매자로서 참여하고자 하는 요청을 처리하는 핸들러
@@ -94,6 +94,70 @@ const joinNewChatRoomHandler = (socket, pool, query, fetch, rootUrl) => {
   };
 };
 
+/**
+ * 유저가 참여하는 모든 채팅방에 접속하고자 하는 요청을 처리하는 핸들러
+ * @param {Socket} socket - 핸들러가 부착될 socket
+ * @param {Pool} pool - DB connection pool
+ * @param {Function} query - query 함수
+ * @param {Function} fetch - fetch API의 fetch 함수
+ * @param {string} rootUrl - 중앙 서버 API의 root URL
+ */
+const connectChatRoomsHandler = (socket, pool, query, fetch, rootUrl) => {
+  return (roomManager, userSocketsMap) => {
+    return async ({ product_ids : productIds }) => {
+      const eventName = 'connect_chat_rooms';
+
+      const userId = socket.user.id;
+
+      const [ buyerChatRooms, sellerChatRooms ] = await Promise.all([
+        selectChatRoomByBuyerId(userId),
+        Promise.all(
+          productIds.map((productId) => {
+            return selectChatRoomByProductId(productId, pool, query)
+          })
+        ).then((results) => results.flat())
+      ]);
+
+      const buyerRoomsAdd = await Promise.all(buyerChatRooms
+      .filter((room) => checkSocketInRoom(socket, room.id))
+      .filter((room) => roomManager.getBuyerId(room.id) === undefined)
+      .map(async (room) => {
+        const result = await fetchProduct(fetch, room.product_id, rootUrl)
+        
+        const sellerId = result.seller_id;
+
+        return {
+          roomId : room.id,
+          sellerId : sellerId,
+          buyerId : userId
+        };
+      }));
+
+      const sellerRoomsAdd = sellerChatRooms
+      .filter((room) => checkSocketInRoom(socket, room.id))
+      .filter((room) => roomManager.getSellerId(room.id) === undefined)
+      .map((room) => ({
+        roomId : room.id,
+        sellerId : userId,
+        buyerId : room.buyer_id
+      }));
+
+      buyerRoomsAdd.forEach(({ roomId, sellerId, buyerId }) => {
+        roomManager.addRoom(roomId, { sellerId, buyerId });
+      });
+      sellerRoomsAdd.forEach(({ roomId, sellerId, buyerId }) => {
+        roomManager.addRoom(roomId, { sellerId, buyerId });
+      });
+
+      buyerChatRooms.forEach((room) => joinRooms(socket, room.id));
+      sellerChatRooms.forEach((room) => joinRooms(socket, room.id));
+
+      socket.emit(eventName, { success : true, room_ids_fail : []});
+    };
+  };
+};
+
 export {
-  joinNewChatRoomHandler
+  joinNewChatRoomHandler,
+  connectChatRoomsHandler
 };
