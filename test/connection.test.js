@@ -1,5 +1,6 @@
 import { Server } from 'socket.io';
 import Client from 'socket.io-client';
+import { createRoomManager } from '#src/room/room_manager.js';
 import { initializeSocket } from '#src/controller/socket_controller.js';
 
 describe('connection 이벤트 테스트', () => {
@@ -17,7 +18,7 @@ describe('connection 이벤트 테스트', () => {
 
 		socketUserMap = new Map();
 
-    initializeSocket(io, middlewares, socketUserMap);
+    initializeSocket(io, middlewares, createRoomManager(), socketUserMap);
 
     io.listen(3000);
   });
@@ -40,9 +41,10 @@ describe('connection 이벤트 테스트', () => {
 
 	test('socketUserMap 올바른 키-값 저장', (done) => {
 		clientSocket = new Client(`http://localhost:${3000}`);
-    clientSocket.on("connection", (msg) => {
-			expect(socketUserMap.get(clientSocket.id)).toBe('aifjodsjof123123-123912xkdkdk');
-			done();
-		});
-	})
+		clientSocket.on("connection", (msg) => {
+      expect(socketUserMap.get('aifjodsjof123123-123912xkdkdk'))
+      .toStrictEqual(new Set([clientSocket.id]));
+      done();
+    });
+  })
 });
