@@ -8,12 +8,10 @@ describe('room_manager', () => {
         {
           roomId : 2,
           seller : {
-            id : 'sa234xas',
-            sockets : new Set()
+            id : 'sa234xas'
           },
           buyer : {
-              id : 'adfasdfsa',
-              sockets : new Set()
+              id : 'adfasdfsa'
           }
         }
       ]
@@ -39,50 +37,12 @@ describe('room_manager', () => {
     });
     
     test('존재하지 않는 roomId를 인자로 넘겼을 때', () => {
-      expect(manager.addSellerSocket(3, 'sa234xas'))
-      .toBeUndefined();
-      expect(manager.addBuyerSocket(1, 'adfasdfsa'))
-      .toBeUndefined();
-      expect(manager.deleteSellerSocket(5404, 'sa234xas'))
-      .toBeUndefined();
-      expect(manager.deleteBuyerSocket(120, 'adfasdfsa'))
-      .toBeUndefined();
       expect(manager.deleteRoom(102))
       .toBe(false);
       expect(manager.getSellerId(1))
       .toBeUndefined();
       expect(manager.getBuyerId(5))
       .toBeUndefined();
-      expect(manager.getSellerSockets(391920320))
-      .toStrictEqual([]);
-      expect(manager.getBuyerSockets(291929))
-      .toStrictEqual([]);
-    });
-
-    test('addSellerSocket', () => {
-      expect(manager.addSellerSocket(2, 22))
-      .toStrictEqual(new Set([22]));
-    });
-
-		test('addBuyerSocket', () => {
-			expect(manager.addBuyerSocket(2, 32))
-      .toStrictEqual(new Set([32]));
-		});
-    
-    test('deleteSellerSocket', () => {
-      manager.addSellerSocket(2, 12);
-      expect(manager.deleteSellerSocket(2, 12))
-      .toBe(true);
-      expect(manager.deleteSellerSocket(2, 12))
-      .toBe(false);
-    });
-
-    test('deleteBuyerSocket', () => {
-      manager.addBuyerSocket(2, 12);
-      expect(manager.deleteBuyerSocket(2, 12))
-      .toBe(true);
-      expect(manager.deleteBuyerSocket(2, 12))
-      .toBe(false);
     });
     
     test('deleteRoom', () => {
@@ -100,18 +60,6 @@ describe('room_manager', () => {
     test('getBuyerId', () =>{
       expect(manager.getBuyerId(2))
       .toBe('adfasdfsa');
-    });
-
-    test('getSellerSockets', () => {
-      manager.addSellerSocket(2, 'diajfida-212xxasads');
-      expect(manager.getSellerSockets(2))
-      .toStrictEqual(['diajfida-212xxasads']);
-    });
-
-    test('getBuyerSockets', () => {
-      manager.addSellerSocket(2, 'd43xcxasfuj313');
-      expect(manager.getSellerSockets(2))
-      .toStrictEqual(['d43xcxasfuj313']);
     });
 	});
 });
