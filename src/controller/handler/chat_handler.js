@@ -1,4 +1,5 @@
 import { selectChatCreateDate, selectChatHistoryAfter } from "#src/DB/select_chat";
+import { insertChat } from "#src/DB/update_chat";
 import { checkSocketInRoom } from "#src/room/room_manager";
 
 /**
@@ -32,6 +33,34 @@ const getChatHistoryHandler = (socket, pool, query) => async ({ chat_room_id : c
   });
 };
 
+const newChatHandler = (socket, query, pool) => async ( { chat_room_id, chat_content }) => {
+  const eventName = 'new_chat';
+
+  const userId = socket.user.id;
+
+  if(checkSocketInRoom(socket, chat_room_id)) {
+    return socket.emit(eventName, new Error(`${chat_room_id} 채팅방에 접속되어 있지 않습니다`));
+  }
+
+  const now = new Date();
+  const dateString = now.toLocaleString('en-CA', { hour12 : false }).replace(',', '');
+
+  const chatRecord = {
+    chat_content,
+    create_date : dateString,
+    modified_date : dateString,
+    chat_room_id,
+    sender_id : userId
+  };
+
+  const result = await insertChat(pool, chatRecord, query);
+  const chat_id = result.insertId;
+
+  socket.emit(eventName, { chat_id, ...chatRecord });
+  socket.to(chat_room_id).emit(eventName, { chat_id, ...chatRecord });
+};
+
 export {
-  getChatHistoryHandler
+  getChatHistoryHandler,
+  newChatHandler
 };
