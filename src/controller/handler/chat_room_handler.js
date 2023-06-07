@@ -2,6 +2,7 @@ import { selectChatRoomByProductId } from "#src/DB/select_chat_room.js";
 import { insertChatRoom } from "#src/DB/update_chat_room.js";
 import { fetchProduct } from "#src/api_client/product/fetch_product.js";
 import { notificateNewChatRoomEmitter } from "#src/emitter/chat_room_emitter.js";
+import { joinRooms } from "#src/room/room_manager";
 
 /**
  * 특정 상품의 채팅방에 구매자로서 참여하고자 하는 요청을 처리하는 핸들러
@@ -66,8 +67,8 @@ const joinNewChatRoomHandler = (socket, pool, query, fetch, rootUrl) => {
 
       roomManager.addRoom(chatRoom.id, { sellerId, buyerId : userId });
 
-      const buyerSockets = userSocketsMap.get(userId);
-      const sellerSockets = userSocketsMap.get(sellerId);
+      const buyerSockets = [...userSocketsMap.get(userId)];
+      const sellerSockets = [...userSocketsMap.get(sellerId)];
 
       const buyerMsg = {
         chat_room_id,
@@ -75,8 +76,11 @@ const joinNewChatRoomHandler = (socket, pool, query, fetch, rootUrl) => {
 	      product_id
       };
 
+      buyerSockets.forEach((socket) => joinRooms(socket, [chat_room_id]));
+      sellerSockets.forEach((socket) => joinRooms(socket, [chat_room_id]));
+
       socket.emit(eventName, buyerMsg);
-      socket.to(buyerSockets).emit(eventName, buyerMsg);
+      socket.to(buyerSockets.map((socket) => socket.id)).emit(eventName, buyerMsg);
 
       const sellerMsg = {
         chat_room_id,
@@ -85,7 +89,7 @@ const joinNewChatRoomHandler = (socket, pool, query, fetch, rootUrl) => {
         buyer_id
       };
 
-      notificateNewChatRoomEmitter(socket, sellerSockets, sellerMsg);
+      notificateNewChatRoomEmitter(socket, sellerSockets.map((socket) => socket.id), sellerMsg);
     };
   };
 };
