@@ -3,7 +3,7 @@ CREATE DATABASE bit_chat_test DEFAULT CHARACTER SET utf8mb4;
 USE bit_chat_test;
 
 CREATE TABLE `chat_room` (
-	`id` BIGINT	NOT NULL,
+	`id` BIGINT	NOT NULL AUTO_INCREMENT,
 	`create_date` DATETIME NOT NULL,
 	`modified_date`	DATETIME NOT NULL,
 	`product_id` BIGINT NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE `chat_room` (
 );
 
 CREATE TABLE `chat` (
-	`id` BIGINT NOT NULL,
+	`id` BIGINT NOT NULL AUTO_INCREMENT,
 	`chat_content` VARCHAR(255)	NOT NULL,
 	`create_date` DATETIME NOT NULL,
 	`modified_date` DATETIME NOT NULL,
