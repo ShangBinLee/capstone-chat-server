@@ -42,8 +42,9 @@ describe('connection 이벤트 테스트', () => {
 	test('socketUserMap 올바른 키-값 저장', (done) => {
 		clientSocket = new Client(`http://localhost:${3000}`);
 		clientSocket.on("connection", (msg) => {
-      expect(socketUserMap.get('aifjodsjof123123-123912xkdkdk'))
-      .toStrictEqual(new Set([clientSocket.id]));
+      const sockets = [...socketUserMap.get('aifjodsjof123123-123912xkdkdk')];
+      expect(sockets.map((socket) => socket.id))
+      .toStrictEqual([clientSocket.id]);
       done();
     });
   })
