@@ -7,7 +7,7 @@
 const fetchUserInfo = (fetch, tok, rootUrl) => {
 	const headers = { Authentication : `berear ${tok}` };
 
-	return fetch(`${rootUrl}/user/info`, { headers })
+	return fetch(`${rootUrl}/api/user/info`, { headers })
 		.then((res) => res.json());
 };
 
