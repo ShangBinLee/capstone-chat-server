@@ -18,13 +18,7 @@ const fetchSellerProductsAll = (fetch, tok, rootUrl) => {
  * @param {string} rootUrl - 중앙 서버 API의 root URL
  */
 const fetchProduct = (fetch, productId, rootUrl) => {
-	const params = {
-		field : 'all'
-	};
-
-	const querystring = new URLSearchParams(params).toString();
-
-	return fetch(`${rootUrl}/chat/saleproduct/${productId}?${querystring}`)
+	return fetch(`${rootUrl}/api/saleproduct/find/${productId}`)
 		.then((res) => res.json());
 };
 
