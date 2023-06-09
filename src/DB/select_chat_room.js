@@ -3,6 +3,20 @@ id, modified_date, product_id, check_transaction, buyer_id
 FROM
 chat_room`;
 
+/**
+ * id에 해당하는 채팅방 레코드를 가져옴
+ * @param {Number} id - 채팅방 id
+ * @param {Pool} pool - DB connection pool
+ * @param {Function} query - query 함수
+ */
+const selectChatRoomById = (id, pool, query) => {
+	const sql = `${sqlFromChatRoom}
+	WHERE
+	id = ?`;
+
+	return query(pool, query, id);
+};
+
 const selectChatRoomByBuyerId = (buyerId, pool, query) => {
 	const sql = `${sqlFromChatRoom}
 	WHERE
@@ -56,9 +70,10 @@ const selectTradingRoomIdByProductId = (productId, pool, query) => {
 };
 
 export {
+	selectChatRoomById,
 	selectChatRoomByBuyerId,
 	selectChatRoomByProductId,
-  selectProductIdById,
+  	selectProductIdById,
 	selectCheckTransactionById,
 	selectTradingRoomIdByProductId
 };
