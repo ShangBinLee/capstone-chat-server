@@ -14,10 +14,39 @@ const initializeSocket = (io, middlewares, roomManager, userSocketsMap) => {
     userSocketsMap.has(socket.user.id)
     ? userSocketsMap.get(socket.user.id).add(socket)
     : userSocketsMap.set(socket.user.id, new Set([socket]));
-		// 소켓 이벤트 핸들러 부착
 
+    // 소켓 이벤트 핸들러 부착
     socket.on('disconnecting', () => {
-      userSocketsMap.get(socket.user.id).delete(socket);
+      const userId = socket.user.id;
+
+      userSocketsMap.get(userId)?.delete(socket);
+
+      const roomIds = [...socket.rooms];
+
+      roomIds
+      .filter((roomId) => roomId != socket.id)
+      .map((roomId) => ({
+        roomId,
+        sellerId : roomManager.getSellerId(roomId),
+        buyerId : roomManager.getBuyerId(roomId)
+      }))
+      .map(({ roomId, sellerId, buyerId }) => {
+        let otherUserId;
+        if(sellerId === userId) {
+          otherUserId = sellerId;
+        } else if(buyerId === userId) {
+          otherUserId = buyerId;
+        } else {
+          throw new Error(`${userId} is not a participant of chat_room ${roomId}. ${sellerId} and ${buyerId} are the participants`);
+        }
+
+        return { roomId, otherUserId };
+      })
+      .forEach(({ roomId, otherUserId }) => {
+        if(userSocketsMap.get(otherUserId)?.size === 0) {
+          roomManager.deleteRoom(roomId)
+        }
+      });
     });
 
 		socket.emit('connection', { status : 'connected' });
