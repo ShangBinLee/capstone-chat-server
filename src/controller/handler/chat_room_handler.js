@@ -147,12 +147,12 @@ const connectChatRoomsHandler = (socket, pool, query, fetch, rootUrl) => {
       ]);
 
       const buyerRoomsAdd = await Promise.all(buyerChatRooms
-      .filter((room) => checkSocketInRoom(socket, room.id))
+      .filter((room) => checkSocketInRoom(socket, room.id) === false)
       .filter((room) => roomManager.getBuyerId(room.id) === undefined)
       .map(async (room) => {
-        const result = await fetchProduct(fetch, room.product_id, rootUrl)
+        const { data } = await fetchProduct(fetch, room.product_id, rootUrl, authorization)
         
-        const sellerId = result.seller_id;
+        const sellerId = data.studentId;
 
         return {
           roomId : room.id,
@@ -162,7 +162,7 @@ const connectChatRoomsHandler = (socket, pool, query, fetch, rootUrl) => {
       }));
 
       const sellerRoomsAdd = sellerChatRooms
-      .filter((room) => checkSocketInRoom(socket, room.id))
+      .filter((room) => checkSocketInRoom(socket, room.id) === false)
       .filter((room) => roomManager.getSellerId(room.id) === undefined)
       .map((room) => ({
         roomId : room.id,
@@ -177,8 +177,8 @@ const connectChatRoomsHandler = (socket, pool, query, fetch, rootUrl) => {
         roomManager.addRoom(roomId, { sellerId, buyerId });
       });
 
-      buyerChatRooms.forEach((room) => joinRooms(socket, room.id));
-      sellerChatRooms.forEach((room) => joinRooms(socket, room.id));
+      joinRooms(socket, buyerChatRooms.map((room) => room.id));
+      joinRooms(socket, sellerChatRooms.map((room) => room.id));
 
       socket.emit(eventName, { success : true, room_ids_fail : []});
     };
