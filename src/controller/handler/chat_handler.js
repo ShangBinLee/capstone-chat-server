@@ -1,6 +1,6 @@
-import { selectChatCreateDate, selectChatHistoryAfter } from "#src/DB/select_chat";
-import { insertChat } from "#src/DB/update_chat";
-import { checkSocketInRoom } from "#src/room/room_manager";
+import { selectChatCreateDate, selectChatHistoryAfter } from "#src/DB/select_chat.js";
+import { insertChat } from "#src/DB/update_chat.js";
+import { checkSocketInRoom } from "#src/room/room_manager.js";
 
 /**
  * 특정 채팅방의 특정 채팅 이후의 채팅 내역을 응답하는 핸들러
