@@ -92,9 +92,9 @@ const offerPriceHandler = (socket, pool, query, roomManager, userSocketsMap) => 
       return socket.emit(eventName, new Error('상대방이 채팅방에 접속 되어 있지 않습니다'));
     }
 
-    const productId = selectProductIdById(chatRoomId, pool, query);
+    const [ productId ] = await selectProductIdById(chatRoomId, pool, query);
 
-    const tradingRoom = await selectTradingRoomIdByProductId(productId);
+    const tradingRoom = await selectTradingRoomIdByProductId(productId, pool, query);
 
     if(tradingRoom.length !== 0) {
       return socket.emit(eventName, new Error('이미 거래 중인 상품입니다'));
