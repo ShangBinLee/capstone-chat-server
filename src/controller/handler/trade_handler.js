@@ -1,6 +1,6 @@
-import { selectProductIdById, selectTradingRoomIdByProductId } from "#src/DB/select_chat_room";
-import { fetchProduct } from "#src/api_client/product/fetch_product";
-import { checkSocketInRoom } from "#src/room/room_manager";
+import { selectProductIdById, selectTradingRoomIdByProductId } from "#src/DB/select_chat_room.js";
+import { fetchProduct } from "#src/api_client/product/fetch_product.js";
+import { checkSocketInRoom } from "#src/room/room_manager.js";
 
 /**
  * 특정 채팅방에 연결된 상품의 거래 성립 확인을 위한 정보 요청에 응답하는 핸들러
