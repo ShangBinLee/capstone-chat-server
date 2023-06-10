@@ -1,8 +1,29 @@
-import { selectChatRoomByBuyerId, selectChatRoomByProductId } from "#src/DB/select_chat_room.js";
+import { selectChatRoomByBuyerId, selectChatRoomById, selectChatRoomByProductId } from "#src/DB/select_chat_room.js";
 import { insertChatRoom } from "#src/DB/update_chat_room.js";
 import { fetchProduct } from "#src/api_client/product/fetch_product.js";
 import { notificateNewChatRoomEmitter } from "#src/emitter/chat_room_emitter.js";
 import { checkSocketInRoom, joinRooms } from "#src/room/room_manager";
+
+/**
+ * 송신 클라이언트 소켓이 접속 되어 있는 채팅방 정보를 응답하는 핸들러
+ * @param {Socket} socket - 핸들러가 부착될 socket
+ * @param {Pool} pool - DB connection pool
+ */
+const getChatRoomsHandler = (socket, pool, query) => async () => {
+  const eventName = 'get_chat_rooms';
+
+  const roomIds = [...socket.rooms];
+
+  const rooms = await Promise.all(roomIds.map((roomId) => selectChatRoomById(roomId, pool, query)));
+
+  const messages = rooms.map(({ id, modified_date, product_id }) => ({
+    chat_room_id : id,
+    modified_date,
+    product_id
+  }));
+
+  socket.emit(eventName, messages);
+};
 
 /**
  * 특정 상품의 채팅방에 구매자로서 참여하고자 하는 요청을 처리하는 핸들러
@@ -158,6 +179,7 @@ const connectChatRoomsHandler = (socket, pool, query, fetch, rootUrl) => {
 };
 
 export {
+  getChatRoomsHandler,
   joinNewChatRoomHandler,
   connectChatRoomsHandler
 };
