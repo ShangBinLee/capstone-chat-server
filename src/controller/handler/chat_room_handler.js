@@ -2,7 +2,7 @@ import { selectChatRoomByBuyerId, selectChatRoomById, selectChatRoomByProductId 
 import { insertChatRoom } from "#src/DB/update_chat_room.js";
 import { fetchProduct } from "#src/api_client/product/fetch_product.js";
 import { getChatRoomsEmitter, notificateNewChatRoomEmitter } from "#src/emitter/chat_room_emitter.js";
-import { checkSocketInRoom, joinRooms } from "#src/room/room_manager";
+import { checkSocketInRoom, joinRooms } from "#src/room/room_manager.js";
 
 /**
  * 송신 클라이언트 소켓이 접속 되어 있는 채팅방 정보를 응답하는 핸들러
