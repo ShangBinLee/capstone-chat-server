@@ -59,6 +59,60 @@ const getDealInfoHandler = (socket, pool, query, fetch, rootUrl) => async ({ cha
   });
 };
 
+/**
+ * 특정 채팅방에 연결된 상품의 합의 가격을 제시하는 요청을 처리하고 응답하는 핸들러
+ * @param {Socket} socket - 핸들러가 부착될 socket
+ * @param {Pool} pool - DB connection pool
+ * @param {Function} query - query 함수
+ * @param {Map<String, Object>} roomManager - roomId를 키로 하는 room 관리자
+ * @param {Map<String, Set<Socket>} userSocketsMap - userId를 키, 해당 유저의 클라이언트 소켓 id Set을 값으로 하는 Map instance
+ */
+const offerPriceHandler = (socket, pool, query, roomManager, userSocketsMap) => {
+  return async ({ chat_room_id : chatRoomId, offer_price : offerPrice }) => {
+    const eventName = 'offer_price';
+
+    if(checkSocketInRoom(socket, chatRoomId) === false) {
+      return socket.emit(eventName, new Error('채팅방에 접속 되어 있지 않습니다'));
+    }
+
+    const roomUsers =[
+      roomManager.getSellerId(chatRoomId),
+      roomManager.getBuyerId(chatRoomId)
+    ];
+
+    if(roomUsers.find((userId) => socket.user.id === userId) === undefined) {
+      return socket.emit(eventName, new Error('채팅방에 참여하고 있지 않습니다'));
+    }
+
+    const otherUserId = roomUsers.find((userId) => socket.user.id !== userId);
+
+    const otherUserSockets = userSocketsMap.get(otherUserId);
+
+    if(otherUserSockets.size === 0) {
+      return socket.emit(eventName, new Error('상대방이 채팅방에 접속 되어 있지 않습니다'));
+    }
+
+    const productId = selectProductIdById(chatRoomId, pool, query);
+
+    const tradingRoom = await selectTradingRoomIdByProductId(productId);
+
+    if(tradingRoom.length !== 0) {
+      return socket.emit(eventName, new Error('이미 거래 중인 상품입니다'));
+    }
+
+    const message = {
+      chat_room_id : chatRoomId,
+	    offerer_id : socket.user.id,
+	    offer_price : offerPrice
+    };
+
+    // 송신 클라이언트 소켓 + 채팅방 join 중인 소켓에게 emit
+    socket.emit(eventName, message)
+    socket.to(chatRoomId).emit(eventName, message);
+  };
+};
+
 export {
-  getDealInfoHandler
+  getDealInfoHandler,
+  offerPriceHandler
 };
