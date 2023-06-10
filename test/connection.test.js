@@ -4,7 +4,7 @@ import { createRoomManager } from '#src/room/room_manager.js';
 import { initializeSocket } from '#src/controller/socket_controller.js';
 
 describe('connection 이벤트 테스트', () => {
-  let io, clientSocket, socketUserMap;
+  let io, clientSocket, userSocketsMap;
 
   beforeAll(() => {
     io = new Server();
@@ -16,14 +16,15 @@ describe('connection 이벤트 테스트', () => {
 			}
     ];
 
-		socketUserMap = new Map();
+		userSocketsMap = new Map();
 
-    initializeSocket(io, middlewares, createRoomManager(), socketUserMap);
+    initializeSocket(io, middlewares, createRoomManager(), userSocketsMap);
 
     io.listen(3000);
   });
 
-	afterEach(() => {
+	afterEach((done) => {
+    clientSocket.on('disconnect', () => done());
 		clientSocket.close();
 	});
 
@@ -39,10 +40,10 @@ describe('connection 이벤트 테스트', () => {
 		});
   });
 
-	test('socketUserMap 올바른 키-값 저장', (done) => {
+	test('userSocketsMap 올바른 키-값 저장', (done) => {
 		clientSocket = new Client(`http://localhost:${3000}`);
 		clientSocket.on("connection", (msg) => {
-      const sockets = [...socketUserMap.get('aifjodsjof123123-123912xkdkdk')];
+      const sockets = [...userSocketsMap.get('aifjodsjof123123-123912xkdkdk')];
       expect(sockets.map((socket) => socket.id))
       .toStrictEqual([clientSocket.id]);
       done();
