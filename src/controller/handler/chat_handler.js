@@ -38,17 +38,18 @@ const newChatHandler = (socket, query, pool) => async ( { chat_room_id, chat_con
 
   const userId = socket.user.id;
 
-  if(checkSocketInRoom(socket, chat_room_id)) {
+  if(checkSocketInRoom(socket, chat_room_id) === false) {
     return socket.emit(eventName, new Error(`${chat_room_id} 채팅방에 접속되어 있지 않습니다`));
   }
 
   const now = new Date();
-  const dateString = now.toLocaleString('en-CA', { hour12 : false }).replace(',', '');
+  const dateString = now.toLocaleDateString('ko-kr');
+  const dateTime = dateString.slice(0, dateString.length - 1).replaceAll('. ', '-') + ' ' + now.toLocaleTimeString('ko', { timeStyle : 'medium', hour12 : false });
 
   const chatRecord = {
     chat_content,
-    create_date : dateString,
-    modified_date : dateString,
+    create_date : dateTime,
+    modified_date : dateTime,
     chat_room_id,
     sender_id : userId
   };
