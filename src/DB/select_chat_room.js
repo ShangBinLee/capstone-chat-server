@@ -14,7 +14,7 @@ const selectChatRoomById = (id, pool, query) => {
 	WHERE
 	id = ?`;
 
-	return query(pool, query, id);
+	return query(pool, sql, id);
 };
 
 const selectChatRoomByBuyerId = (buyerId, pool, query) => {
