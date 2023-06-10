@@ -14,13 +14,13 @@ const getChatRoomsHandler = (socket, pool, query) => async () => {
 
   const rooms = await Promise.all(roomIds.map((roomId) => selectChatRoomById(roomId, pool, query)));
 
-  const messages = rooms.map(({ id, modified_date, product_id }) => ({
+  const message = rooms.map(({ id, modified_date, product_id }) => ({
     chat_room_id : id,
     modified_date,
     product_id
   }));
 
-  getChatRoomsEmitter(socket, messages);
+  getChatRoomsEmitter(socket, message);
 };
 
 /**
