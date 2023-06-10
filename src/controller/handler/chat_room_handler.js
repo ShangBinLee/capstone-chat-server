@@ -34,7 +34,7 @@ const getChatRoomsHandler = (socket, pool, query) => async () => {
 const joinNewChatRoomHandler = (socket, pool, query, fetch, rootUrl) => {
   return (roomManager, userSocketsMap) => {
     let proceeding = false;
-    return async ({ product_id : productId }) => {
+    return async ({ product_id : productId, authorization }) => {
       if(proceeding === true) {
         return;
       }
@@ -46,27 +46,35 @@ const joinNewChatRoomHandler = (socket, pool, query, fetch, rootUrl) => {
       const userId = socket.user.id;
 
       const [ product, isAlreadyJoining ] = await Promise.all([
-        fetchProduct(fetch, productId, rootUrl),
+        fetchProduct(fetch, productId, rootUrl, authorization)
+        .then(({ data }) => data),
         selectChatRoomByProductId(productId, pool, query)
         .then((rooms) => rooms.some((room) => room.buyer_id === userId))
       ]);
 
       if(isAlreadyJoining === true) {
+        proceeding = false;
         return socket.emit(eventName, new Error(`이미 ${productId} 상품의 채팅방에 구매자로 참여하고 있습니다`));
       }
 
-      const sellerId = product.seller_id;
+      const sellerId = product.studentId;
 
+      if(sellerId === undefined) {
+        proceeding = false;
+        throw new Error('studenId is missing');
+      }
       if(sellerId === userId) {
+        proceeding = false;
         return socket.emit(eventName, new Error(`당신은 ${productId} 상품의 판매자입니다`));
       }
 
       const now = new Date();
-      const dateString = now.toLocaleString('en-CA', { hour12 : false }).replace(',', '');
+      const dateString = now.toLocaleDateString('ko-kr');
+      const dateTime = dateString.slice(0, dateString.length - 1).replaceAll('. ', '-') + ' ' + now.toLocaleTimeString('ko', { timeStyle : 'medium', hour12 : false });
 
       const chatRoomRecord = {
-        create_date : dateString,
-        modified_date : dateString,
+        create_date : dateTime,
+        modified_date : dateTime,
         product_id : productId,
         check_transaction : false,
         buyer_id : userId
@@ -76,18 +84,19 @@ const joinNewChatRoomHandler = (socket, pool, query, fetch, rootUrl) => {
 
       proceeding = false;
 
-      const { 
-        chat_room_id,
+      const [{
+        id : chat_room_id,
         modified_date,
         product_id,
         buyer_id
-      } = await selectChatRoomByProductId(productId, pool, query)
+      }] = await selectChatRoomByProductId(productId, pool, query)
         .then((rooms) => rooms.filter((room) => room.buyer_id === userId));
 
-      roomManager.addRoom(chatRoom.id, { sellerId, buyerId : userId });
+      roomManager.addRoom(chat_room_id, { sellerId, buyerId : userId });
 
       const buyerSockets = [...userSocketsMap.get(userId)];
-      const sellerSockets = [...userSocketsMap.get(sellerId)];
+      const sellerSocketSet = userSocketsMap.get(sellerId)
+      const sellerSockets = sellerSocketSet?.size > 0 ? [ ...sellerSocketSet ] : [];
 
       const buyerMsg = {
         chat_room_id,
@@ -123,13 +132,13 @@ const joinNewChatRoomHandler = (socket, pool, query, fetch, rootUrl) => {
  */
 const connectChatRoomsHandler = (socket, pool, query, fetch, rootUrl) => {
   return (roomManager, userSocketsMap) => {
-    return async ({ product_ids : productIds }) => {
+    return async ({ product_ids : productIds, authorization }) => {
       const eventName = 'connect_chat_rooms';
 
       const userId = socket.user.id;
 
       const [ buyerChatRooms, sellerChatRooms ] = await Promise.all([
-        selectChatRoomByBuyerId(userId),
+        selectChatRoomByBuyerId(userId, pool, query),
         Promise.all(
           productIds.map((productId) => {
             return selectChatRoomByProductId(productId, pool, query)
