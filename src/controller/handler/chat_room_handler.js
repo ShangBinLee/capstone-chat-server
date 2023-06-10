@@ -10,11 +10,18 @@ import { checkSocketInRoom, joinRooms } from "#src/room/room_manager.js";
  * @param {Pool} pool - DB connection pool
  */
 const getChatRoomsHandler = (socket, pool, query) => async () => {
-  const roomIds = [...socket.rooms];
+  const roomIds = [...socket.rooms].filter((roomId) => roomId != socket.id);
 
-  const rooms = await Promise.all(roomIds.map((roomId) => selectChatRoomById(roomId, pool, query)));
+  const rooms = await Promise.all(roomIds.map((roomId) =>
+    {
+      return selectChatRoomById(roomId, pool, query)
+      .then((results) => results[0]);
+    })
+  );
 
-  const message = rooms.map(({ id, modified_date, product_id }) => ({
+  const message = rooms
+  .filter((room) => room !== undefined)
+  .map(({ id, modified_date, product_id }) => ({
     chat_room_id : id,
     modified_date,
     product_id
