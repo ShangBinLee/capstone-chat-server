@@ -12,8 +12,8 @@
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:coverage": "npm test -- --coverage",
     "test:watch": "npm test -- --watch",
-    "start": "node src/main.js",
-    "dev-start": "set ENV_NAME=.env.development.local&&nodemon --watch src --exec npm start"
+    "start": "set NODE_ENV=production&&node src/main.js",
+    "dev-start": "set NODE_ENV=development&&nodemon --watch src --exec node src/main.js"
   },
   "repository": {
     "type": "git",
