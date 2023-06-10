@@ -1,7 +1,7 @@
 import { selectChatRoomByBuyerId, selectChatRoomById, selectChatRoomByProductId } from "#src/DB/select_chat_room.js";
 import { insertChatRoom } from "#src/DB/update_chat_room.js";
 import { fetchProduct } from "#src/api_client/product/fetch_product.js";
-import { notificateNewChatRoomEmitter } from "#src/emitter/chat_room_emitter.js";
+import { getChatRoomsEmitter, notificateNewChatRoomEmitter } from "#src/emitter/chat_room_emitter.js";
 import { checkSocketInRoom, joinRooms } from "#src/room/room_manager";
 
 /**
@@ -10,8 +10,6 @@ import { checkSocketInRoom, joinRooms } from "#src/room/room_manager";
  * @param {Pool} pool - DB connection pool
  */
 const getChatRoomsHandler = (socket, pool, query) => async () => {
-  const eventName = 'get_chat_rooms';
-
   const roomIds = [...socket.rooms];
 
   const rooms = await Promise.all(roomIds.map((roomId) => selectChatRoomById(roomId, pool, query)));
@@ -22,7 +20,7 @@ const getChatRoomsHandler = (socket, pool, query) => async () => {
     product_id
   }));
 
-  socket.emit(eventName, messages);
+  getChatRoomsEmitter(socket, messages);
 };
 
 /**
