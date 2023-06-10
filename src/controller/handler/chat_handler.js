@@ -13,16 +13,16 @@ import { checkSocketInRoom } from "#src/room/room_manager.js";
 const getChatHistoryHandler = (socket, pool, query) => async ({ chat_room_id : chatRoomId, last_chat_id : lastChatId }) => {
   const eventName = 'get_chat_history';
 
-  if(checkSocketInRoom(socket, chatRoomId)) {
+  if(checkSocketInRoom(socket, chatRoomId) === false) {
     return socket.emit(eventName, []);
   }
 
   const resultRecord = await selectChatCreateDate(lastChatId, pool, query);
 
-  const dateString = resultRecord[0];
+  const dateString = resultRecord[0]?.create_date;
 
   if(dateString === undefined) {
-    return socket.emit(eventName, []);
+    return socket.emit(eventName, { chat_room_id : chatRoomId, chat_history : [] });
   }
 
   const chatHistory = await selectChatHistoryAfter(chatRoomId, dateString, pool, query);
