@@ -21,10 +21,9 @@ const getChatRoomsHandler = (socket, pool, query) => async () => {
 
   const message = rooms
   .filter((room) => room !== undefined)
-  .map(({ id, modified_date, product_id }) => ({
+  .map(({ id, ...others }) => ({
     chat_room_id : id,
-    modified_date,
-    product_id
+    ...others
   }));
 
   getChatRoomsEmitter(socket, message);
@@ -61,7 +60,7 @@ const joinNewChatRoomHandler = (socket, pool, query, fetch, rootUrl) => {
 
       if(isAlreadyJoining === true) {
         proceeding = false;
-        return socket.emit(eventName, new Error(`이미 ${productId} 상품의 채팅방에 구매자로 참여하고 있습니다`));
+        return socket.emit(eventName, { error_message : `이미 ${productId} 상품의 채팅방에 구매자로 참여하고 있습니다` });
       }
 
       const sellerId = product.studentId;
@@ -72,7 +71,7 @@ const joinNewChatRoomHandler = (socket, pool, query, fetch, rootUrl) => {
       }
       if(sellerId === userId) {
         proceeding = false;
-        return socket.emit(eventName, new Error(`당신은 ${productId} 상품의 판매자입니다`));
+        return socket.emit(eventName, { error_message : `당신은 ${productId} 상품의 판매자입니다` });
       }
 
       const now = new Date();
@@ -93,9 +92,10 @@ const joinNewChatRoomHandler = (socket, pool, query, fetch, rootUrl) => {
 
       const [{
         id : chat_room_id,
+        create_date,
         modified_date,
         product_id,
-        buyer_id
+        buyer_id,
       }] = await selectChatRoomByProductId(productId, pool, query)
         .then((rooms) => rooms.filter((room) => room.buyer_id === userId));
 
@@ -105,26 +105,20 @@ const joinNewChatRoomHandler = (socket, pool, query, fetch, rootUrl) => {
       const sellerSocketSet = userSocketsMap.get(sellerId)
       const sellerSockets = sellerSocketSet?.size > 0 ? [ ...sellerSocketSet ] : [];
 
-      const buyerMsg = {
-        chat_room_id,
-	      modified_date,
-	      product_id
-      };
-
       buyerSockets.forEach((socket) => joinRooms(socket, [chat_room_id]));
       sellerSockets.forEach((socket) => joinRooms(socket, [chat_room_id]));
 
-      socket.emit(eventName, buyerMsg);
-      socket.to(buyerSockets.map((socket) => socket.id)).emit(eventName, buyerMsg);
-
-      const sellerMsg = {
+      const msg = {
         chat_room_id,
         modified_date,
         product_id,
         buyer_id
       };
 
-      notificateNewChatRoomEmitter(socket, sellerSockets.map((socket) => socket.id), sellerMsg);
+      socket.emit(eventName, msg);
+      socket.to(buyerSockets.map((socket) => socket.id)).emit(eventName, msg);
+
+      notificateNewChatRoomEmitter(socket, sellerSockets.map((socket) => socket.id), msg);
     };
   };
 };
@@ -139,7 +133,7 @@ const joinNewChatRoomHandler = (socket, pool, query, fetch, rootUrl) => {
  */
 const connectChatRoomsHandler = (socket, pool, query, fetch, rootUrl) => {
   return (roomManager, userSocketsMap) => {
-    return async ({ product_ids : productIds, authorization }) => {
+    return async ({ productIds : productIds, authorization }) => {
       const eventName = 'connect_chat_rooms';
 
       const userId = socket.user.id;

@@ -14,7 +14,7 @@ const getDealInfoHandler = (socket, pool, query, fetch, rootUrl) => async ({ cha
   const eventName = 'get_chat_history';
 
   if(checkSocketInRoom(socket, chatRoomId) === true) {
-    return socket.emit(eventName, { error : new Error(`클라이언트가 ${chatRoomId}에 접속되어 있지 않습니다`) });
+    return socket.emit(eventName, { error_message : `클라이언트가 ${chatRoomId}에 접속되어 있지 않습니다` });
   }
 
   const productId = await selectProductIdById(chatRoomId, pool, query)
@@ -72,7 +72,7 @@ const offerPriceHandler = (socket, pool, query, roomManager, userSocketsMap) => 
     const eventName = 'offer_price';
 
     if(checkSocketInRoom(socket, chatRoomId) === false) {
-      return socket.emit(eventName, new Error('채팅방에 접속 되어 있지 않습니다'));
+      return socket.emit(eventName, { error_message : '채팅방에 접속 되어 있지 않습니다'});
     }
 
     const roomUsers =[
@@ -81,7 +81,7 @@ const offerPriceHandler = (socket, pool, query, roomManager, userSocketsMap) => 
     ];
 
     if(roomUsers.find((userId) => socket.user.id === userId) === undefined) {
-      return socket.emit(eventName, new Error('채팅방에 참여하고 있지 않습니다'));
+      return socket.emit(eventName, { error_message : '채팅방에 참여하고 있지 않습니다' });
     }
 
     const otherUserId = roomUsers.find((userId) => socket.user.id !== userId);
@@ -89,7 +89,7 @@ const offerPriceHandler = (socket, pool, query, roomManager, userSocketsMap) => 
     const otherUserSockets = userSocketsMap.get(otherUserId);
 
     if(otherUserSockets.size === 0) {
-      return socket.emit(eventName, new Error('상대방이 채팅방에 접속 되어 있지 않습니다'));
+      return socket.emit(eventName, { error_message : '상대방이 채팅방에 접속 되어 있지 않습니다' });
     }
 
     const [ productId ] = await selectProductIdById(chatRoomId, pool, query);
@@ -97,7 +97,7 @@ const offerPriceHandler = (socket, pool, query, roomManager, userSocketsMap) => 
     const tradingRoom = await selectTradingRoomIdByProductId(productId, pool, query);
 
     if(tradingRoom.length !== 0) {
-      return socket.emit(eventName, new Error('이미 거래 중인 상품입니다'));
+      return socket.emit(eventName, { error_message : '이미 거래 중인 상품입니다' });
     }
 
     const message = {

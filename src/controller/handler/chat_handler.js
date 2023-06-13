@@ -39,7 +39,7 @@ const newChatHandler = (socket, query, pool) => async ( { chat_room_id, chat_con
   const userId = socket.user.id;
 
   if(checkSocketInRoom(socket, chat_room_id) === false) {
-    return socket.emit(eventName, new Error(`${chat_room_id} 채팅방에 접속되어 있지 않습니다`));
+    return socket.emit(eventName, { error_message : `${chat_room_id} 채팅방에 접속되어 있지 않습니다` });
   }
 
   const now = new Date();
