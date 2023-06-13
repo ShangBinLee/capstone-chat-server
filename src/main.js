@@ -11,7 +11,7 @@ import { tokUseChecker, userInfoFetcher } from './middleware/auth.js';
 import { tokUseCheckerDevelop } from './middleware/auth.develop.js';
 import { createRoomManager } from '#src/room/room_manager.js';
 
-const io = new Server();
+const io = new Server({ cors: { origin: "*" } });
 
 const pool = createDBPool(dbConfig, mysql);
 const _dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -34,7 +34,7 @@ const middlewares = [tokUseCheckerUsed, userInfoFetcher(fetch, rootUrl)];
 
 initializeSocket(pool, query, fetch, rootUrl)(io, middlewares, createRoomManager(), new Map());
 
-io.listen(3000, () => { console.log("it is listening!") });
+io.listen(4000, () => { console.log("it is listening!") });
 
 io.on('error', (err) => {
     console.error('socket.io error occured!\n');
